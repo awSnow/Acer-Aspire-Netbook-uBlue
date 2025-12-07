@@ -1,7 +1,7 @@
 ---
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
 # image will be published to ghcr.io/<user>/<name>
-name: aspire-netbookO-S
+name: aspire-netbookOS
 # description will be included in the image's metadata
 description: This is the image for my Acer Aspire.
 
@@ -17,21 +17,6 @@ modules:
       - source: system
         destination: / # copies files/system/* (* means everything inside it) into your image's root folder /
 
-  - type: dnf
-    repos:
-      copr:
-        - atim/starship
-    install:
-      packages:
-        - micro
-        - starship
-    remove:
-      packages:
-        # example: removing firefox (in favor of the flatpak)
-        # "firefox" is the main package, "firefox-langpacks" is a dependency
-        - firefox
-        - firefox-langpacks # also remove firefox dependency (not required for all packages, this is a special case)
-
   - type: default-flatpaks
     configurations:
       - notify: true # Send notification after install/uninstall is finished (true/false)
@@ -41,7 +26,6 @@ modules:
           - org.mozilla.firefox
           - org.gnome.Loupe
       - scope: user # Also add Flathub user repo, but no user packages
-
 
   - type: rpm-ostree
     repos:
