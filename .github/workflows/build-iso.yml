@@ -7,10 +7,10 @@ jobs:
   build-iso:
     runs-on: ubuntu-latest
     steps:
-      - name: Set up Podman
+      - name: Install dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y podman
+          sudo apt-get install -y podman xorriso grub-pc-bin grub-efi-amd64-bin
 
       - name: Pull bootc-image-builder
         run: |
@@ -32,6 +32,9 @@ jobs:
             --type iso \
             --rootfs btrfs \
             ghcr.io/${{ github.repository_owner }}/acer-minimal-os:latest
+
+      - name: List output
+        run: ls -lh /tmp/iso-output/bootiso/
 
       - name: Upload ISO artifact
         uses: actions/upload-artifact@v4
