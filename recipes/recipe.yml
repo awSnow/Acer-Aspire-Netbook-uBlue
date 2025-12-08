@@ -1,39 +1,32 @@
----
-# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
-# image will be published to ghcr.io/<user>/<name>
-name: aspire-netbookOS
-# description will be included in the image's metadata
-description: This is the image for my Acer Aspire.
+name: acer-sway-os
+description: Lightweight Sway desktop for Acer Aspire 722
+base-image: ghcr.io/ublue-os/sway-atomic-main
+image-version: latest
 
-# the base image to build on top of (FROM) and the version tag to use
-base-image: ghcr.io/ublue-os/vauxite
-image-version: 42 # latest is also supported if you want new updates ASAP
-
-# module configuration, executed in order
-# you can include multiple instances of the same module
 modules:
-  - type: files
-    files:
-      - source: system
-        destination: / # copies files/system/* (* means everything inside it) into your image's root folder /
-
-  - type: default-flatpaks
-    configurations:
-      - notify: true # Send notification after install/uninstall is finished (true/false)
-        scope: system
-        # If no repo information is specified, Flathub will be used by default
-        install: # system flatpaks we want all users to have and not remove
-          - org.mozilla.firefox
-          - org.gnome.Loupe
-      - scope: user # Also add Flathub user repo, but no user packages
-
   - type: rpm-ostree
+    repos:
+      - https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-$(rpm -E %fedora).noarch.rpm
+      - https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-$(rpm -E %fedora).noarch.rpm
     install:
-      - https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-42.noarch.rpm
-      - https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-42.noarch.rpm
-
-  - type: rpm-ostree
-    install:
+      # Broadcom WiFi driver
       - akmod-wl
       - broadcom-wl
+      # Essential terminal and file manager
+      - foot
+      - nautilus
+      # Browser
+      - firefox
+      # Sway utilities (most are pre-included, these are extras)
+      - swaylock
+      - swayidle
+      - swaybg
+      - wl-clipboard
+      # System utilities
       - htop
+      - curl
+      - wget
+      - nano
+      # Audio/media (optional)
+      - pavucontrol
+      - alsa-utils
