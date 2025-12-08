@@ -1,13 +1,13 @@
 name: acer-sway-os
-description: Lightweight Sway desktop for Acer Aspire 722 (AMD C-60)
+description: Lightweight Sway desktop for Acer Aspire 722
 base-image: ghcr.io/ublue-os/sway-atomic-main
-image-version: 43
+image-version: 42
 
 modules:
   - type: rpm-ostree
     repos:
-      - https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-43.noarch.rpm
-      - https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-43.noarch.rpm
+      - https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-42.noarch.rpm
+      - https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-42.noarch.rpm
     install:
       - akmod-wl
       - broadcom-wl
