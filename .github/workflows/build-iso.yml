@@ -1,0 +1,40 @@
+name: Build ISO from acer-minimal-os
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  build-iso:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Set up Podman
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y podman
+
+      - name: Pull bootc-image-builder
+        run: |
+          sudo podman pull quay.io/centos-bootc/bootc-image-builder:latest
+
+      - name: Pull your OS image
+        run: |
+          sudo podman pull ghcr.io/${{ github.repository_owner }}/acer-minimal-os:latest
+
+      - name: Build ISO with bootc-image-builder
+        run: |
+          mkdir -p /tmp/iso-output
+          sudo podman run \
+            --rm \
+            --privileged \
+            -v /tmp/iso-output:/output \
+            -v /var/lib/containers/storage:/var/lib/containers/storage \
+            quay.io/centos-bootc/bootc-image-builder:latest \
+            --type iso \
+            --rootfs btrfs \
+            ghcr.io/${{ github.repository_owner }}/acer-minimal-os:latest
+
+      - name: Upload ISO artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: acer-minimal-install-iso
+          path: /tmp/iso-output/bootiso/install.iso
