@@ -1,6 +1,6 @@
-name: acer-sway-os
-description: Lightweight Sway desktop for Acer Aspire 722
-base-image: ghcr.io/ublue-os/sway-atomic-main
+name: acer-minimal-os
+description: Minimal UBlue base for Acer C-50 (2GB RAM)
+base-image: ghcr.io/ublue-os/base-main
 image-version: 42
 
 modules:
@@ -9,16 +9,11 @@ modules:
       - https://mirrors.rpmfusion.org/free/fedora/rpmfusion-free-release-42.noarch.rpm
       - https://mirrors.rpmfusion.org/nonfree/fedora/rpmfusion-nonfree-release-42.noarch.rpm
     install:
-      - foot
-      - nautilus
-      - firefox
-      - swaylock
-      - swayidle
-      - swaybg
-      - wl-clipboard
+      - xorg-x11-server-Xvfb
+      - openbox
+      - xterm
       - htop
       - curl
       - wget
       - nano
-      - pavucontrol
-      - alsa-utils
+      - tmux
