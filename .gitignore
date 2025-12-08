@@ -1,3 +1,26 @@
+# Build outputs
+output/
+*.iso
+*.img
+*.qcow2
+*.raw
+
+# Signing keys (private key - DO NOT COMMIT)
 cosign.key
-cosign.private
-/Containerfile
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# Local testing
+.local/
+
+# Podman/Docker
+*.tar

@@ -1,43 +1,206 @@
-# BlueBuild Template &nbsp; [![bluebuild build badge](https://github.com/blue-build/template/actions/workflows/build.yml/badge.svg)](https://github.com/blue-build/template/actions/workflows/build.yml)
+# Acer Minimal OS
 
-See the [BlueBuild docs](https://blue-build.org/how-to/setup/) for quick setup instructions for setting up your own repository based on this template.
+Custom UBlue Fedora Atomic image for Acer Aspire 722 netbook (AMD C-50, 2GB RAM).
 
-After setup, it is recommended you update this README to describe your custom image.
+## Quick Start
 
-## Installation
+### Default Credentials
+| Field | Value |
+|-------|-------|
+| Username | `dj` |
+| Password | `changeme` |
 
-> [!WARNING]  
-> [This is an experimental feature](https://www.fedoraproject.org/wiki/Changes/OstreeNativeContainerStable), try at your own discretion.
+**⚠️ Change your password immediately after first login:**
+```bash
+passwd
+```
 
-To rebase an existing atomic Fedora installation to the latest build:
+## Features
 
-- First rebase to the unsigned image, to get the proper signing keys and policies installed:
-  ```
-  rpm-ostree rebase ostree-unverified-registry:ghcr.io/blue-build/template:latest
-  ```
-- Reboot to complete the rebase:
-  ```
-  systemctl reboot
-  ```
-- Then rebase to the signed image, like so:
-  ```
-  rpm-ostree rebase ostree-image-signed:docker://ghcr.io/blue-build/template:latest
-  ```
-- Reboot again to complete the installation
-  ```
-  systemctl reboot
-  ```
+- Minimal Openbox desktop (~150MB RAM usage)
+- LightDM with auto-login (5 second timeout)
+- Essential utilities: pcmanfm, xterm, mousepad, htop
+- NetworkManager for connectivity
+- Low-RAM sysctl tweaks (swappiness=10)
+- Passwordless sudo for wheel group
 
-The `latest` tag will automatically point to the latest build. That build will still always use the Fedora version specified in `recipe.yml`, so you won't get accidentally updated to the next major version.
+## Building
 
-## ISO
+### Automatic (GitHub Actions)
 
-If build on Fedora Atomic, you can generate an offline ISO with the instructions available [here](https://blue-build.org/learn/universal-blue/#fresh-install-from-an-iso). These ISOs cannot unfortunately be distributed on GitHub for free due to large sizes, so for public projects something else has to be used for hosting.
+Images build automatically on push to `main` and are published to:
+```
+ghcr.io/YOUR_USERNAME/acer-minimal-os:42
+```
 
-## Verification
-
-These images are signed with [Sigstore](https://www.sigstore.dev/)'s [cosign](https://github.com/sigstore/cosign). You can verify the signature by downloading the `cosign.pub` file from this repo and running the following command:
+### Manual Local Build
 
 ```bash
-cosign verify --key cosign.pub ghcr.io/blue-build/template
+# Install BlueBuild CLI
+podman run --rm -it -v .:/repo:Z ghcr.io/blue-build/cli build /repo/recipes/recipe.yml
+
+# Or use the GitHub Action locally with act
+act -j build
 ```
+
+## Creating Bootable Media
+
+After the image is built and pushed to GHCR:
+
+### Generate ISO
+
+```bash
+# Pull your image first
+podman pull ghcr.io/YOUR_USERNAME/acer-minimal-os:42
+
+# Create ISO with bootc-image-builder
+sudo podman run --rm -it --privileged \
+  --pull=newer \
+  -v ./config.toml:/config.toml \
+  -v ./output:/output \
+  -v /var/lib/containers/storage:/var/lib/containers/storage \
+  quay.io/centos-bootc/bootc-image-builder:latest \
+  --type iso \
+  --config /config.toml \
+  --local \
+  ghcr.io/YOUR_USERNAME/acer-minimal-os:42
+
+# ISO will be at ./output/bootiso/install.iso
+```
+
+### Flash to USB
+
+```bash
+# Find your USB device (be careful!)
+lsblk
+
+# Flash (replace /dev/sdX with your USB device)
+sudo dd if=./output/bootiso/install.iso of=/dev/sdX bs=4M status=progress conv=fsync
+```
+
+## GitHub Setup
+
+### 1. Create Signing Keys
+
+```bash
+# Install cosign
+# Fedora: sudo dnf install cosign
+# macOS: brew install cosign
+
+# Generate keypair
+cosign generate-key-pair
+
+# This creates:
+# - cosign.key (private - add to GitHub secrets)
+# - cosign.pub (public - keep in repo)
+```
+
+### 2. Add Secret to GitHub
+
+1. Go to your repo → **Settings** → **Secrets and variables** → **Actions**
+2. Click **New repository secret**
+3. Name: `SIGNING_SECRET`
+4. Value: Paste entire contents of `cosign.key`
+
+### 3. Enable Packages Permission
+
+1. **Settings** → **Actions** → **General**
+2. Under "Workflow permissions", select **Read and write permissions**
+3. Check **Allow GitHub Actions to create and approve pull requests**
+
+## Project Structure
+
+```
+my-acer-os/
+├── .github/
+│   └── workflows/
+│       └── build.yml          # GitHub Actions CI/CD
+├── files/
+│   ├── scripts/
+│   │   ├── setup-user.sh      # Creates 'dj' user at build time
+│   │   └── configure-desktop.sh # LightDM, Openbox, sysctl tweaks
+│   └── system/                # Files copied to / in image
+│       └── etc/
+│           └── sudoers.d/
+├── recipes/
+│   └── recipe.yml             # BlueBuild recipe
+├── config.toml                # bootc-image-builder config
+├── cosign.pub                 # Public signing key
+└── README.md
+```
+
+## Hardware Status
+
+| Component | Status | Notes |
+|-----------|--------|-------|
+| Display | ✅ Working | AMD Radeon HD 6250 via mesa |
+| CPU | ✅ Working | AMD C-50 dual-core @ 1.0 GHz |
+| Storage | ✅ Working | 500GB HDD |
+| WiFi | ⏳ Planned | Broadcom BCM4313 needs firmware |
+| Audio | ❓ Untested | |
+
+## Roadmap
+
+- [x] Minimal bootable image
+- [x] Baked-in user account
+- [x] Auto-login desktop
+- [ ] Broadcom WiFi driver integration
+- [ ] 8GB RAM upgrade → Sway desktop
+- [ ] Audio configuration
+
+## Troubleshooting
+
+### No login prompt / black screen
+
+If LightDM fails, switch to TTY:
+```
+Ctrl+Alt+F2
+```
+Login as `dj` / `changeme`, then debug:
+```bash
+journalctl -u lightdm --no-pager
+```
+
+### Forgot password / locked out
+
+Boot with `rd.break` appended to kernel:
+1. At GRUB, press `e` to edit
+2. Find line starting with `linux`
+3. Append: `rd.break`
+4. Press `Ctrl+X` to boot
+5. At emergency shell:
+```bash
+chroot /sysroot
+passwd dj
+exit
+reboot
+```
+
+### Check system resources
+
+```bash
+htop          # Interactive process viewer
+free -h       # Memory usage
+df -h         # Disk usage
+```
+
+## User Creation Approaches
+
+This image uses **two complementary methods**:
+
+1. **Build-time** (`files/scripts/setup-user.sh`): User `dj` is baked into the OCI image. Every deployment has this user.
+
+2. **Install-time** (`config.toml`): bootc-image-builder can inject/override users when creating ISO. Useful for customization without rebuilding.
+
+For production deployments, consider:
+- Remove auto-login in `/etc/lightdm/lightdm.conf.d/50-acer-minimal.conf`
+- Use SSH keys instead of passwords
+- Remove `NOPASSWD` from sudoers
+
+## License
+
+MIT
+
+## Credits
+
+Built with [BlueBuild](https://blue-build.org/) on [Universal Blue](https://universal-blue.org/).

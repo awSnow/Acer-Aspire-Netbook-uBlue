@@ -1,0 +1,33 @@
+# =============================================================================
+# bootc-image-builder Configuration
+# Use this when generating ISO/disk images from the OCI container
+# =============================================================================
+#
+# Usage:
+# sudo podman run --rm -it --privileged \
+#   --pull=newer \
+#   -v ./config.toml:/config.toml \
+#   -v ./output:/output \
+#   -v /var/lib/containers/storage:/var/lib/containers/storage \
+#   quay.io/centos-bootc/bootc-image-builder:latest \
+#   --type iso \
+#   --config /config.toml \
+#   --local \
+#   ghcr.io/YOUR_USERNAME/acer-minimal-os:42
+# =============================================================================
+
+# User configuration - this gets applied at ISO install time
+# Note: The OCI image already has 'dj' baked in, but you can add more users here
+[[customizations.user]]
+name = "dj"
+password = "changeme"
+groups = ["wheel"]
+
+# Filesystem customizations (optional - uncomment to customize)
+# [[customizations.filesystem]]
+# mountpoint = "/"
+# minsize = "10 GiB"
+
+# Kernel command line additions (optional)
+# [customizations.kernel]
+# append = "quiet"
