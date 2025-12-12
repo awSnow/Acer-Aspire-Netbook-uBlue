@@ -37,7 +37,7 @@ jobs:
         run: ls -lh /tmp/iso-output/bootiso/
 
       - name: Upload ISO artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: acer-minimal-install-iso
           path: /tmp/iso-output/bootiso/install.iso
